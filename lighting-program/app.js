@@ -22,17 +22,9 @@
     bar.style.width = Math.max(14, Math.round((done / req.length) * 100)) + '%';
   }
 
-  lights.addEventListener('input', () => {
-    lightsVal.textContent = lights.value;
-    updateProgress();
-  });
-
+  lights.addEventListener('input', () => { lightsVal.textContent = lights.value; updateProgress(); });
   [email, name_, address].forEach(el => el.addEventListener('input', updateProgress));
-
-  perm.addEventListener('change', () => {
-    helpWrap.classList.toggle('hidden', !perm.checked);
-    updateProgress();
-  });
+  perm.addEventListener('change', () => { helpWrap.classList.toggle('hidden', !perm.checked); updateProgress(); });
 
   function showErr(id, show){
     const el = document.querySelector(`.err[data-for="${id}"]`);
@@ -42,7 +34,7 @@
   document.getElementById('resetBtn').addEventListener('click', () => {
     document.getElementById('lightingForm').reset();
     helpWrap.classList.add('hidden');
-    lights.value = 1; // default now 1
+    lights.value = 1;
     lights.dispatchEvent(new Event('input'));
     ['email','name','address'].forEach(k => showErr(k, false));
     document.querySelector('.err[data-for="permission"]').style.display = 'none';
@@ -55,7 +47,6 @@
     showErr('name', !name_.value.trim());
     showErr('address', !address.value.trim());
     document.querySelector('.err[data-for="permission"]').style.display = perm.checked ? 'none' : 'block';
-
     if (!valid){ updateProgress(); return; }
 
     const payload = {
@@ -74,7 +65,7 @@
       toast.classList.add('show'); setTimeout(()=>toast.classList.remove('show'), 3500);
       document.getElementById('lightingForm').reset();
       helpWrap.classList.add('hidden');
-      lights.value = 1; // default now 1
+      lights.value = 1;
       lights.dispatchEvent(new Event('input'));
       updateProgress();
     }catch(err){
@@ -84,7 +75,7 @@
   });
 
   // init
-  lights.value = 1; // ensure initial matches your HTML
+  lights.value = 1;
   lights.dispatchEvent(new Event('input'));
   helpWrap.classList.add('hidden');
   updateProgress();
