@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Iron Horse – Security Lighting Sign-Up</title>
+<link rel="stylesheet" href="style.css"/>
+<link rel="icon" href="assets/favicon.png">
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <img src="assets/logo.png" alt="Iron Horse Neighborhood Association" class="logo">
+      <div>
+        <h1>Security Lighting Program</h1>
+        <p>Sign up to request motion-activated lights (while supplies last). We’ll review by location, need, and availability.</p>
+      </div>
+    </header>
+
+    <form id="lightingForm" novalidate>
+      <div class="grid two">
+        <label class="field">
+          <span>Email <em>*</em></span>
+          <input id="email" name="email" type="email" placeholder="you@example.org" required/>
+          <small class="err" data-for="email">Enter a valid email.</small>
+        </label>
+
+        <label class="field">
+          <span>Name <em>*</em></span>
+          <input id="name" name="name" type="text" placeholder="First and last" required/>
+          <small class="err" data-for="name">Name is required.</small>
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Address <em>*</em></span>
+        <input id="address" name="address" type="text" placeholder="123 S Example Ave, Tucson, AZ" required/>
+        <small class="help">We’ll only show block-level location to admins. Public site shows no map.</small><br>
+        <small class="err" data-for="address">Address is required.</small>
+      </label>
+
+      <div class="grid two">
+        <label class="field">
+          <span>Number of lights requested <em>*</em></span>
+          <input id="lights" name="lights" type="range" min="1" max="3" value="1" step="1"/>
+          <div class="tag">Requesting <strong id="lightsVal">1</strong> light(s)</div>
+        </label>
+
+        <label class="field">
+          <span>Permission to install on the property? <em>*</em></span>
+          <div class="switch">
+            <input id="perm" name="permission" type="checkbox"/>
+            <div class="slider" role="switch" aria-checked="false" tabindex="0"></div>
+          </div>
+          <small class="help">Renters: confirm landlord/manager approval.</small>
+          <small class="err" data-for="permission">You’ll need permission to participate.</small>
+        </label>
+      </div>
+
+      <div id="helpWrap" class="hidden">
+        <label class="field">
+          <span>Installation help needed?</span>
+          <select id="installhelp" name="installhelp">
+            <option value="no">No, I can install myself</option>
+            <option value="yes">Yes, I will need help installing</option>
+          </select>
+        </label>
+      </div>
+      <div class="status">
+        <div class="progress"><div id="bar" class="bar"></div></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="resetBtn" class="btn ghost">Reset</button>
+        <button type="button" id="submitBtn" class="btn primary">Submit request</button>
+      </div>
+      <p class="tiny">Requests are not guaranteed until approved.</p>
+    </form>
+
+    <div id="toast" class="toast" role="status" aria-live="polite">Thanks! We received your request.</div>
+  </main>
+
+  <script>
+    window.GAS_URL = "https://script.google.com/macros/s/AKfycbzeO8j0n5w7j6yk0aPUwp0L8XAVH7FRGmyrL096Jwh2Cha2t2OstPqsnQQB_cwWJ2cH/exec";
+    window.PUBLIC_SETTINGS = { budget:1000, costPerLight:18, distributed:0 };
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
