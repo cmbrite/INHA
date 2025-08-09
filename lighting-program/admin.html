@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>INHA Admin – Lighting Program</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="../style.css"/>
+  <style>
+    main{max-width:980px;margin:24px auto;padding:0 16px}
+    .modal{display:flex;gap:10px;align-items:flex-end;margin:16px 0}
+    #map{height:520px}
+  </style>
+</head>
+<body>
+<main>
+  <h1>INHA Admin</h1>
+  <p class="help">Enter the admin passcode to load requests and the map.</p>
+
+  <div id="gate" class="modal">
+    <label class="field" style="max-width:360px">
+      <span>Admin passcode</span>
+      <input id="pass" type="password" placeholder="••••••••"/>
+    </label>
+    <button id="enter" class="btn primary">Enter</button>
+    <button id="clear" class="btn ghost" title="Clear saved passcode">Clear</button>
+    <small id="msg" class="help"></small>
+  </div>
+
+  <section id="app" class="hidden">
+    <div class="card" style="border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff">
+      <div class="actions" style="justify-content:flex-start">
+        <button id="refresh" class="btn ghost">Refresh</button>
+        <a id="csv" class="btn ghost" href="#" target="_blank" rel="noopener">Download CSV</a>
+      </div>
+      <h3>Admin Map</h3>
+      <div id="map"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ====== CONFIG ======
+  const GAS_BASE = "YOUR_APPS_SCRIPT_WEB_APP_URL"; // ends with /exec
+  const MAPS_KEY = "YOUR_MAPS_BROWSER_KEY";        // Google Maps JS API key
+
+  // ====== Simple passcode gate ======
+  const els = {
+    gate: document.getElementById('gate'),
+    pass: document.getElementById('pass'),
+    enter: document.getElementById('enter'),
+    clear: document.getElementById('clear'),
+    app: document.getElementById('app'),
+    msg: document.getElementById('msg'),
+    csv: document.getElementById('csv'),
+  };
+
+  function saveToken(tok){ localStorage.setItem('inha_admin_token', tok); }
+  function getToken(){ return localStorage.getItem('inha_admin_token') || ''; }
+  function clearToken(){ localStorage.removeItem('inha_admin_token'); }
+
+  async function fetchJSON(type){
+    const token = getToken();
+    const url = `${GAS_BASE}?type=${encodeURIComponent(type)}&token=${encodeURIComponent(token)}`;
+    const res = await fetch(url, {mode:'cors'});
+    if(!res.ok) throw new Error('Request failed');
+    return res.json();
+  }
+
+  async function loadAll(){
+    try{
+      const [participants, incidents] = await Promise.all([
+        fetchJSON('participants'),
+        fetchJSON('incidents')
+      ]);
+      initMap(participants.data || [], incidents.data || []);
+      els.csv.href = `${GAS_BASE}?type=csv&token=${encodeURIComponent(getToken())}`;
+    }catch(e){
+      els.msg.textContent = 'Invalid passcode or backend error.';
+      els.app.classList.add('hidden');
+      els.gate.style.display = 'flex';
+    }
+  }
+
+  els.enter.onclick = async () => {
+    const tok = els.pass.value.trim();
+    if(!tok){ els.msg.textContent = 'Enter a passcode.'; return; }
+    saveToken(tok);
+    els.msg.textContent = '';
+    await loadAll();
+    els.gate.style.display = 'none';
+    els.app.classList.remove('hidden');
+  };
+  els.clear.onclick = () => { clearToken(); els.msg.textContent='Cleared saved passcode.'; };
+
+  // Try auto-load with saved token
+  (async () => {
+    const tok = getToken();
+    if(tok){
+      try{ await loadAll(); els.gate.style.display='none'; els.app.classList.remove('hidden'); }
+      catch{ /* ignore, show gate */ }
+    }
+  })();
+
+  // ====== Map loader ======
+  function initMap(participants, incidents){
+    // Lazy-load Maps JS each time
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(MAPS_KEY)}&callback=__initAdminMap`;
+    script.async = true; script.defer = true;
+    window.__initAdminMap = () => {
+      const map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat:32.223, lng:-110.965}, zoom: 15, mapTypeControl:false, streetViewControl:false
+      });
+      participants.filter(d => d.status==='Approved' && d.lat_round && d.lng_round).forEach(d=>{
+        new google.maps.Marker({ position:{lat:d.lat_round, lng:d.lng_round}, map,
+          label:{text:String(d.lights||1), fontSize:'12px'} });
+      });
+      incidents.forEach(d=>{
+        if(d.lat && d.lng){
+          new google.maps.Marker({
+            position:{lat:d.lat, lng:d.lng}, map,
+            icon:{path:google.maps.SymbolPath.CIRCLE, scale:5, fillColor:'#ef4444', fillOpacity:.9, strokeColor:'#7f1d1d', strokeWeight:1}
+          });
+        }
+      });
+    };
+    document.body.appendChild(script);
+  }
+
+  // Refresh button
+  document.getElementById('refresh').onclick = loadAll;
+</script>
+</body>
+</html>
